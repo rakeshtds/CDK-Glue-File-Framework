@@ -1,0 +1,53 @@
+database: analytics_raw
+tableName: clickstream_events
+description: User clickstream events from the web frontend
+format: JSON
+
+columns:
+  - name: event_id
+    type: string
+    comment: UUID for the event
+  - name: session_id
+    type: string
+    comment: Browser session identifier
+  - name: user_id
+    type: string
+    comment: Authenticated user ID (null for anonymous)
+  - name: event_type
+    type: string
+    comment: "page_view | click | search | add_to_cart | purchase"
+  - name: page_url
+    type: string
+    comment: Full URL where the event occurred
+  - name: referrer
+    type: string
+    comment: HTTP referrer header
+  - name: device_type
+    type: string
+    comment: "desktop | mobile | tablet"
+  - name: event_ts
+    type: timestamp
+    comment: Event timestamp in UTC
+
+partitions:
+  columns:
+    - name: year
+      type: string
+    - name: month
+      type: string
+    - name: day
+      type: string
+    - name: hour
+      type: string
+  s3Pattern: "year={year}/month={month}/day={day}/hour={hour}"
+
+s3Location:
+  prefix: raw/clickstream/
+
+refresh:
+  strategy: event   # instant refresh — new files trigger Lambda immediately
+
+tags:
+  Team: analytics
+  Domain: web
+  DataClassification: internal

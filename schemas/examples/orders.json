@@ -1,0 +1,35 @@
+{
+  "database": "ecommerce_raw",
+  "tableName": "orders",
+  "description": "Raw customer orders landed from the ingestion pipeline",
+  "format": "PARQUET",
+  "columns": [
+    { "name": "order_id",      "type": "string",    "comment": "Unique order identifier" },
+    { "name": "customer_id",   "type": "string",    "comment": "FK to customers table" },
+    { "name": "order_date",    "type": "timestamp", "comment": "UTC timestamp of order placement" },
+    { "name": "total_amount",  "type": "double",    "comment": "Order total in USD" },
+    { "name": "status",        "type": "string",    "comment": "pending | confirmed | shipped | delivered | cancelled" },
+    { "name": "product_count", "type": "int",       "comment": "Number of line items in the order" },
+    { "name": "is_prime",      "type": "boolean",   "comment": "Whether the customer was a Prime member" }
+  ],
+  "partitions": {
+    "columns": [
+      { "name": "year",  "type": "string" },
+      { "name": "month", "type": "string" },
+      { "name": "day",   "type": "string" }
+    ],
+    "s3Pattern": "year={year}/month={month}/day={day}"
+  },
+  "s3Location": {
+    "prefix": "raw/orders/"
+  },
+  "refresh": {
+    "strategy": "both",
+    "scheduleCron": "0 * * * ? *"
+  },
+  "tags": {
+    "Team": "data-engineering",
+    "Domain": "ecommerce",
+    "DataClassification": "internal"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "database": "finance_raw",
+  "tableName": "bank_transactions",
+  "description": "Daily bank transaction records ingested as CSV from core banking system. Partitioned by year/month/day matching existing S3 layout.",
+  "format": "CSV",
+
+  "columns": [
+    { "name": "transaction_id",   "type": "string",    "comment": "Unique transaction reference number" },
+    { "name": "account_number",   "type": "string",    "comment": "Masked account number (last 4 digits visible)" },
+    { "name": "customer_id",      "type": "string",    "comment": "Internal customer identifier" },
+    { "name": "transaction_date", "type": "timestamp", "comment": "UTC timestamp of transaction execution" },
+    { "name": "value_date",       "type": "date",      "comment": "Date funds are available (settlement date)" },
+    { "name": "transaction_type", "type": "string",    "comment": "DEBIT | CREDIT | REVERSAL | FEE" },
+    { "name": "amount",           "type": "double",    "comment": "Transaction amount in source currency" },
+    { "name": "currency",         "type": "string",    "comment": "ISO 4217 currency code e.g. USD, EUR, GBP" },
+    { "name": "balance_after",    "type": "double",    "comment": "Account balance immediately after this transaction" },
+    { "name": "channel",          "type": "string",    "comment": "ATM | ONLINE | BRANCH | MOBILE | POS" },
+    { "name": "merchant_code",    "type": "string",    "comment": "MCC code for card transactions, null for transfers" },
+    { "name": "merchant_name",    "type": "string",    "comment": "Merchant or counterparty name" },
+    { "name": "reference_number", "type": "string",    "comment": "External reference / cheque number" },
+    { "name": "status",           "type": "string",    "comment": "COMPLETED | PENDING | FAILED | REVERSED" },
+    { "name": "is_flagged",       "type": "boolean",   "comment": "true if flagged by fraud detection engine" }
+  ],
+
+  "partitions": {
+    "columns": [
+      { "name": "year",  "type": "string", "comment": "Partition year  e.g. 2024" },
+      { "name": "month", "type": "string", "comment": "Partition month e.g. 01" },
+      { "name": "day",   "type": "string", "comment": "Partition day   e.g. 15" }
+    ],
+    "s3Pattern": "year={year}/month={month}/day={day}"
+  },
+
+  "s3Location": {
+    "bucketName": "my-finance-data-lake",
+    "prefix": "raw/bank_transactions/"
+  },
+
+  "serdeOverride": {
+    "serializationLibrary": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+    "parameters": {
+      "field.delim":            ",",
+      "line.delim":             "\n",
+      "serialization.format":   ",",
+      "skip.header.line.count": "1"
+    }
+  },
+
+  "refresh": {
+    "strategy": "event",
+    "scheduleCron": null
+  },
+
+  "tags": {
+    "Team":               "data-engineering",
+    "Domain":             "finance",
+    "DataClassification": "confidential",
+    "CostCenter":         "data-platform"
+  }
+}
